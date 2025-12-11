@@ -1,12 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
+﻿using IR_SearchEngine.Core.Enums;
 namespace IR_SearchEngine.Core.DTOs
 {
-    class SearchRequestDto
+    public class SearchRequestDto
     {
+        public string Query { get; set; } = null!;
+        public SearchType SearchType { get; set; }
     }
 }

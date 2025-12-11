@@ -2,7 +2,7 @@
 {
     public enum SearchType
     {
-        Boolean,
+        Boolean = 1,
         Phrase,
         Soundex
     }
