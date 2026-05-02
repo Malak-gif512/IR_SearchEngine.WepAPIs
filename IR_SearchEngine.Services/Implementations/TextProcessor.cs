@@ -29,35 +29,23 @@ namespace IR_SearchEngine.Services.Implementations
             "you", "you'd", "you'll", "you're", "you've", "your", "yours", "yourself", "yourselves"
         };
 
-        // الدالة دي بترجع الكلمة + مكانها الأصلي (Position)
-        // عشان نستخدمها في الـ Indexing ونحافظ على الترتيب للـ Phrase Search
+       
         public List<(string term, int position)> AnalyzeWithPositions(string text)
         {
             var result = new List<(string, int)>();
             if (string.IsNullOrWhiteSpace(text)) return result;
 
-            // --- 1. Advanced Normalization ---
             string processed = text.ToLower();
 
-            // أ. التعامل مع الملكية (Possessives): user's -> user
-            // بنشيل 's اللي في آخر الكلمة
             processed = Regex.Replace(processed, @"['’]s\b", "");
 
-            // ب. التعامل مع الشرط (Hyphens): full-stack -> full stack
-            // بنستبدلها بمسافة عشان نفصل الكلمتين عن بعض، مش نلزقهم
             processed = processed.Replace("-", " ");
-            processed = processed.Replace("_", " "); // والـ Underscore بالمرة
+            processed = processed.Replace("_", " "); 
 
-            // ج. تنظيف شامل: أي حاجة مش (حرف أو رقم أو مسافة) شيلها
-            // ده هيشيل النقط، الفواصل، علامات التعجب، والأقواس
             processed = Regex.Replace(processed, @"[^a-z0-9\s]", "");
 
-            // --- 2. Tokenization ---
-            // التقطيع بناءً على المسافات
             var rawTokens = processed.Split(new[] { ' ' }, System.StringSplitOptions.RemoveEmptyEntries);
 
-            // --- 3. Processing Loop (Filter & Stem) ---
-            // i هنا هو الـ Position الحقيقي للكلمة في الجملة
             int validWordCounter = 0;
             for (int i = 0; i < rawTokens.Length; i++)
             {
@@ -69,7 +57,6 @@ namespace IR_SearchEngine.Services.Implementations
                 // Stemming
                 string stemmed = ApplyPorterStemmer(token);
 
-                // 2. بنستخدم العداد الخاص بينا بدل i
                 result.Add((stemmed, validWordCounter));
                 validWordCounter++;
             }
@@ -77,22 +64,17 @@ namespace IR_SearchEngine.Services.Implementations
             return result;
         }
 
-        // الدالة القديمة (Wrapper)
-        // بنستخدمها لما نكون عايزين الكلمات بس (زي في SearchService)
+       
         public List<string> Analyze(string text, out List<string> logs)
         {
-            logs = new List<string>(); // عشان التوافق مع التوقيع القديم
+            logs = new List<string>(); 
 
-            // 1. نادي الدالة "العالمية" الجديدة
             var resultWithPositions = AnalyzeWithPositions(text);
 
-            // 2. استخرج الكلمات فقط (Terms) وارمي الـ Positions
-            // Select: دي Linq بتعمل Projection
             return resultWithPositions.Select(item => item.term).ToList();
         }
         public string ApplyStemming(string word) => ApplyPorterStemmer(word);
 
-        // --- PORTER STEMMER IMPLEMENTATION (PDF Reference) ---
         private string ApplyPorterStemmer(string word)
         {
             if (word.Length <= 2) return word;

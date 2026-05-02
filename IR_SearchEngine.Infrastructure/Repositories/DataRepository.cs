@@ -54,7 +54,6 @@ namespace IR_SearchEngine.Infrastructure.Repositories
             AddDocument(22, "The skies are clear today");
 
             // --- Category 5: Soundex Test (Phonetic) ---
-            // الغرض: تجربة البحث عن Smith ويطلعلك Smyth
             AddDocument(23, "Mr. Smith is a great engineer");
             AddDocument(24, "Mrs. Smyth works at the same company");
             AddDocument(25, "My name is Robert");

@@ -51,19 +51,16 @@ namespace IR_SearchEngine.Services.Implementations
         {
             string tuned = query.Replace("(", " ( ").Replace(")", " ) ");
             var rawtokens = tuned.Split(new[] { ' ' }, System.StringSplitOptions.RemoveEmptyEntries);
-            // 👇👇 التعديل هنا: تنظيف الكويري قبل الشغل 👇👇
+
             var tokensList = SanitizeQueryTokens(rawtokens);
 
-            // لو الكويري فضيت بعد التنظيف (كانت كلها AND AND OR) رجع فاضي
             if (tokensList.Count == 0) return new HashSet<int>();
 
-            // حولناها لـ Array عشان نكمل الكود القديم
             var tokens = tokensList.ToArray();
             steps.Add($"1. Sanitized Query: {string.Join(" ", tokens)}");
 
             var postfix = InfixToPostfix(tokens);
 
-            // تسجيل الخطوة: التحويل لـ Postfix
             steps.Add($"2. Postfix Expression: {string.Join(" ", postfix)}");
 
             var stack = new Stack<HashSet<int>>();
@@ -159,7 +156,7 @@ namespace IR_SearchEngine.Services.Implementations
                     matchingTerms.Add(key);
                     if (!suggestions.Contains(key))
                     {
-                        suggestions.Add(key); 
+                        suggestions.Add(key);
                     }
                 }
             }
@@ -213,55 +210,53 @@ namespace IR_SearchEngine.Services.Implementations
         private List<string> SanitizeQueryTokens(string[] tokens)
         {
             var cleanTokens = new List<string>();
-            var operators = new HashSet<string> { "AND", "OR", "NOT" };
-            var binaryOperators = new HashSet<string> { "AND", "OR" }; 
+           
+            var operators = new HashSet<string> { "AND", "OR", "NOT", "(", ")" };
+
+            var binaryOperators = new HashSet<string> { "AND", "OR" };
 
             for (int i = 0; i < tokens.Length; i++)
             {
-                string token = tokens[i].ToUpper();
-                string prevToken = cleanTokens.Count > 0 ? cleanTokens.Last().ToUpper() : "";
+                string token = tokens[i].Trim();
+                if (string.IsNullOrEmpty(token)) continue;
 
-                // 1. لو التوكن الحالي Operator
-                if (operators.Contains(token))
+                string tokenUpper = token.ToUpper();
+
+                if (cleanTokens.Count > 0)
                 {
-                    // أ. لو جه في الأول خالص (ومش NOT) -> تجاهله
-                    // مثال: "AND Ahmed" -> تبقى "Ahmed"
-                    if (cleanTokens.Count == 0 && token != "NOT") continue;
+                    string prevTokenUpper = cleanTokens.Last().ToUpper();
 
-                    // ب. لو قبله Operator تاني
-                    if (operators.Contains(prevToken))
+                    bool isCurrentWord = !operators.Contains(tokenUpper);
+
+                  
+                    bool isPrevWordOrEndParen = !operators.Contains(prevTokenUpper) || prevTokenUpper == ")";
+
+                    if (isCurrentWord && isPrevWordOrEndParen)
                     {
-                        // حالة خاصة مسموحة: AND NOT أو OR NOT
-                        if (token == "NOT" && binaryOperators.Contains(prevToken))
-                        {
-                            cleanTokens.Add(tokens[i]); // ضيف الـ NOT عادي
-                        }
-                        else
-                        {
-                            // غير كده، تجاهل الـ Operator الحالي (تكرار)
-                            // مثال: "Ahmed AND OR Ali" -> هتتجاهل OR وتبقى "Ahmed AND Ali"
-                            continue;
-                        }
-                    }
-                    else
-                    {
-                        // لو قبله كلمة عادية أو قوس، ضيف الـ Operator عادي
-                        cleanTokens.Add(tokens[i]);
+                        cleanTokens.Add("AND");
                     }
                 }
-                else
+                if (binaryOperators.Contains(tokenUpper))
                 {
-                    // لو كلمة عادية ضيفها
-                    cleanTokens.Add(tokens[i]);
+                    
+                    if (cleanTokens.Count == 0) continue; 
+                    string prev = cleanTokens.Last().ToUpper();
+                    if (binaryOperators.Contains(prev) || prev == "(" || prev == "NOT")
+                    {
+                        continue;
+                    }
                 }
+
+              
+                cleanTokens.Add(token);
             }
 
-            // 2. تنظيف النهاية: لو آخر حاجة Operator شيلها
-            // مثال: "Ahmed AND" -> تبقى "Ahmed"
-            if (cleanTokens.Count > 0 && operators.Contains(cleanTokens.Last().ToUpper()))
+            if (cleanTokens.Count > 0 && binaryOperators.Contains(cleanTokens.Last().ToUpper()))
             {
                 cleanTokens.RemoveAt(cleanTokens.Count - 1);
             }
+
+            if (cleanTokens.Count == 1 && cleanTokens[0].ToUpper() == "NOT") return new List<string>();
 
             return cleanTokens;
         }
