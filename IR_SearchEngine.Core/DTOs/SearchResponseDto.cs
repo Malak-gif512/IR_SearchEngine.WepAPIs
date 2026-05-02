@@ -1,11 +1,18 @@
 ﻿using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace IR_SearchEngine.Core.DTOs
 {
-    class SearchResponseDto
+    public class SearchResponseDto
     {
+        public List<DocumentResultDto> Documents { get; set; } = new List<DocumentResultDto>();
+        public List<string> ProcessingSteps { get; set; } = new List<string>();
+        public List<string> SuggestedTerms { get; set; } = new();
+        public int TotalResults { get; set; }
+    }
+
+    public class DocumentResultDto
+    {
+        public int DocId { get; set; }
+        public string Content { get; set; } = null!;
     }
 }
