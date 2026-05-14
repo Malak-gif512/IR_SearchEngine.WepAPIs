@@ -34,7 +34,7 @@ This project was a collaborative effort focused on high-quality backend engineer
 This project demonstrates the practical application of Information Retrieval theories, focusing on **Code Quality**, **SOLID Principles**, and **Clean Architecture**. It serves as a testament to our ability to build complex, logic-driven systems from the ground up.
 
 ---
-
 *Developed with passion for Academic Excellence.*
 
----.
+
+
